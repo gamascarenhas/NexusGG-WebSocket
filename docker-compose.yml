@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # ── Banco de dados PostgreSQL ────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexusgg_postgres
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - dados_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend (Node.js + TypeScript + WebSocket) ───────────────────────────
+  backend:
+    build:
+      context: ./backend
+    container_name: nexusgg_backend
+    env_file: ./backend/.env
+    environment:
+      DB_HOST:       postgres
+      DB_PORT:       ${DB_PORT}
+      DB_NAME:       ${DB_NAME}
+      DB_USER:       ${DB_USER}
+      DB_PASSWORD:   ${DB_PASSWORD}
+      PORT:          ${BACKEND_PORT}
+      FRONTEND_URL:  ${FRONTEND_URL}
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+
+  # ── Frontend (Next.js) ───────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+    container_name: nexusgg_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_WS_URL:  ${NEXT_PUBLIC_WS_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+
+volumes:
+  dados_postgres:
