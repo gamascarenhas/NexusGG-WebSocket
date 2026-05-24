@@ -4,19 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Usuario } from '../../tipos';
 import { criarUsuario, buscarUsuarios, atualizarUsuario, removerUsuario } from '../../lib/api';
-
-// Persiste o usuário ativo no sessionStorage para navegar entre páginas
-const CHAVE_USUARIO = 'nexusgg_usuario_ativo';
-
-export function salvarUsuarioAtivo(usuario: Usuario): void {
-  sessionStorage.setItem(CHAVE_USUARIO, JSON.stringify(usuario));
-}
-
-export function carregarUsuarioAtivo(): Usuario | null {
-  if (typeof window === 'undefined') return null;
-  const salvo = sessionStorage.getItem(CHAVE_USUARIO);
-  return salvo ? (JSON.parse(salvo) as Usuario) : null;
-}
+import { salvarUsuarioAtivo } from '../../lib/sessao';
 
 export default function PaginaUsuarios() {
   const router = useRouter();

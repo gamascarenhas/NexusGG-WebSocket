@@ -7,13 +7,7 @@ import { Usuario, Mensagem, EventoWS } from '../../tipos';
 import { buscarConversa, buscarNaoLidas } from '../../lib/api';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { IconeStatusMensagem } from '../../components/IconeStatusMensagem';
-
-// Lê o usuário ativo do sessionStorage
-function lerUsuarioAtivo(): Usuario | null {
-  if (typeof window === 'undefined') return null;
-  const salvo = sessionStorage.getItem('nexusgg_usuario_ativo');
-  return salvo ? (JSON.parse(salvo) as Usuario) : null;
-}
+import { carregarUsuarioAtivo, salvarUsuarioAtivo } from '../../lib/sessao';
 
 export default function PaginaChat() {
   const router = useRouter();
@@ -42,7 +36,7 @@ export default function PaginaChat() {
 
   // Carrega usuário ativo do sessionStorage ao montar
   useEffect(() => {
-    const usuario = lerUsuarioAtivo();
+    const usuario = carregarUsuarioAtivo();
     if (!usuario) {
       router.replace('/usuarios');
       return;
